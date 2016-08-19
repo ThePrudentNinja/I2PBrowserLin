@@ -1,0 +1,19 @@
+I2P Browser Portable Linux Version
+Project Homepage: None
+Project Github: https://github.com/ThePrudentNinja/I2PBrowserLin
+
+This is simply a portable modified Tor browser for use with I2P for Linux.
+
+The Windows version is here:
+https://github.com/ThePrudentNinja/I2PBrowserWin
+
+The suite for Linux (that contains this browser) is here:
+https://github.com/ThePrudentNinja/I2PPortableLin
+
+To obtain this browser, download the following archive and extract.
+Then chmod +x the fix-permissions.sh file and run it.
+Then launch the browser by clicking on the I2PBrowser.desktop file.
+
+Downloading in the browser currently doesn't work. This is a known issue. If you want to
+download stuff from eepsites, please use the eepget script that comes with I2P.
+The Linux suite has this script under App/I2P/ (eepget, not eepgetbrowser)
