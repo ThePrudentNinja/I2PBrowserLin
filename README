@@ -10,7 +10,9 @@ https://github.com/ThePrudentNinja/I2PBrowserWin
 The suite for Linux (that contains this browser) is here:
 https://github.com/ThePrudentNinja/I2PPortableLin
 
-To obtain this browser, download the following archive and extract.
+To obtain this browser, download the following archive and extract:
+https://github.com/ThePrudentNinja/I2PBrowserLin/blob/master/Other/i2pbrowserlin.tar.bz2?raw=true
+
 Then chmod +x the fix-permissions.sh file and run it.
 Then launch the browser by clicking on the I2PBrowser.desktop file.
 
