@@ -92,15 +92,17 @@ complain () {
 }
 
 if [ "`id -u`" -eq 0 ]; then
-	complain "The I2P Browser should not be run as root.  Exiting."
+	complain "The I2P Browser Bundle should not be run as root.  Exiting."
 	exit 1
 fi
 
 tbb_usage () {
     printf "\nI2P Browser Script Options\n"
-    printf "  --verbose         Display Firefox output in the terminal\n"
-    printf "  --log [file]      Record Firefox output in file (default: tor-browser.log)\n"
+    printf "  --verbose         Display I2P and Firefox output in the terminal\n"
+    printf "  --log [file]      Record I2P and Firefox output in file (default: i2p-browser.log)\n"
     printf "  --detach          Detach from terminal and run I2P Browser in the background.\n"
+    printf "  --register-app    Register I2P Browser as a desktop app for this user\n"
+    printf "  --unregister-app  Unregister I2P Browser as a desktop app for this user\n"
 }
 log_output=0
 show_output=0
@@ -128,7 +130,7 @@ do
       -l | --log)
           if [ -z "$2" -o "${2:0:1}" == "-" ]; then
              printf "Logging I2P Browser debug information to i2p-browser.log\n"
-             logfile="../../Data/Logs/i2p-browser.log"
+             logfile="../i2p-browser.log"
           elif [ "${2:0:1}" == "/" -o "${2:0:1}" == "~" ]; then
              printf "Logging I2P Browser debug information to %s\n" "$2"
              logfile="$2"
@@ -231,10 +233,10 @@ fi
 
 # Fix up .desktop Icon and Exec Paths, and update the .desktop file from the
 # canonical version if it was changed by the updater.
-cp start-i2p-browser.desktop ../
-sed -i -e "s,^Name=.*,Name=I2P Browser,g" ../start-i2p-browser.desktop
-sed -i -e "s,^Icon=.*,Icon=$PWD/browser/icons/mozicon128.png,g" ../start-i2p-browser.desktop
-sed -i -e "s,^Exec=.*,Exec=sh -c '\"$PWD/start-i2p-browser\" --detach || ([ !  -x \"$PWD/start-i2p-browser\" ] \&\& \"\$(dirname \"\$*\")\"/Browser/start-i2p-browser --detach)' dummy %k,g" ../start-i2p-browser.desktop
+#cp start-i2p-browser.desktop ../
+#sed -i -e "s,^Name=.*,Name=I2P Browser,g" ../start-i2p-browser.desktop
+#sed -i -e "s,^Icon=.*,Icon=$PWD/browser/icons/mozicon128.png,g" ../start-i2p-browser.desktop
+#sed -i -e "s,^Exec=.*,Exec=sh -c '\"$PWD/start-i2p-browser\" --detach || ([ !  -x \"$PWD/start-i2p-browser\" ] \&\& \"\$(dirname \"\$*\")\"/Browser/start-i2p-browser --detach)' dummy %k,g" ../start-i2p-browser.desktop
 
 if [ "$register_desktop_app" -eq 1 ]; then
 	mkdir -p "$HOME/.local/share/applications/"
@@ -258,85 +260,16 @@ fi
 HOME="${PWD}"
 export HOME
 
-SYSARCHITECTURE=$(getconf LONG_BIT)
-TORARCHITECTURE=$(expr "$(file TorBrowser/Tor/tor)" : '.*ELF \([[:digit:]]*\)')
+#SYSARCHITECTURE=$(getconf LONG_BIT)
+#TORARCHITECTURE=$(expr "$(file I2PBrowser/I2P/i2p)" : '.*ELF \([[:digit:]]*\)')
 
-if [ $SYSARCHITECTURE -ne $TORARCHITECTURE ]; then
-   complain "Wrong architecture? 32-bit vs. 64-bit."
-   exit 1
-fi
+#if [ $SYSARCHITECTURE -ne $TORARCHITECTURE ]; then
+#   complain "Wrong architecture? 32-bit vs. 64-bit."
+#   exit 1
+#fi
 
-LD_LIBRARY_PATH="${HOME}/TorBrowser/Tor/"
+LD_LIBRARY_PATH="${HOME}/Libraries"
 export LD_LIBRARY_PATH
-
-function setControlPortPasswd() {
-    local ctrlPasswd=$1
-
-    if test -z "$ctrlPasswd" -o "$ctrlPasswd" = $'\"secret\"' ; then
-        unset TOR_CONTROL_PASSWD
-        return
-    fi
-
-    if test "${ctrlPasswd:0:1}" = $'\"'; then  # First 2 chars were '"
-        printf "Using system Tor process.\n"
-        export TOR_CONTROL_PASSWD
-    else
-        complain "There seems to have been a quoting problem with your \
-TOR_CONTROL_PASSWD environment variable."
-        cat <<EOF
-
-The Tor ControlPort password should be given inside double quotes, inside single
-quotes, i.e. if the ControlPort password is “secret” (without curly quotes) then
-we must start this script after setting the environment variable exactly like
-this:
-
-  \$ TOR_CONTROL_PASSWD='"secret"' $myname
-
-EOF
-    fi
-}
-
-# Using a system-installed Tor process with I2P Browser:
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The Tor ControlPort password should be given inside double quotes, inside
-# single quotes, i.e. if the ControlPort password is “secret” (without
-# curly quotes) then we must set the environment variable *exactly* like
-# this:
-#
-# TOR_CONTROL_PASSWD='"secret"'
-#
-# Yes, the variable MUST be double-quoted, then single-quoted, exactly as
-# shown. This is used by TorButton and Tor Launcher to authenticate to Tor's
-# ControlPort, and is necessary for using TB with a system-installed Tor.
-#
-# Additionally, if using a system-installed Tor, the following about:config
-# options should be set (values in <> mean they are the value taken from your
-# torrc):
-#
-# SETTING NAME                            VALUE
-# extensions.torbutton.banned_ports       [...],<SocksPort>,<ControlPort>
-# extensions.torbutton.block_disk         false
-# extensions.torbutton.custom.socks_host  127.0.0.1
-# extensions.torbutton.custom.socks_port  <SocksPort>
-# extensions.torbutton.inserted_button    true
-# extensions.torbutton.launch_warning     false
-# extensions.torbutton.loglevel           2
-# extensions.torbutton.logmethod          0
-# extensions.torbutton.settings_method    custom
-# extensions.torbutton.socks_port         <SocksPort>
-# extensions.torbutton.use_privoxy        false
-# extensions.torlauncher.control_port      <ControlPort>
-# extensions.torlauncher.loglevel          2
-# extensions.torlauncher.logmethod         0
-# extensions.torlauncher.prompt_at_startup false
-# extensions.torlauncher.start_tor         false
-#
-# where the '[...]' in the banned_ports option means "leave anything that was
-# already in the preference alone, just append the things specified after it".
-
-# Either set `TOR_CONTROL_PASSWD` before running ./start-i2p-browser, or put
-# your password in the following line where the word “secret” is:
-setControlPortPasswd ${TOR_CONTROL_PASSWD:='"secret"'}
 
 # Set up custom bundled fonts. See fonts-conf(5).
 export FONTCONFIG_PATH="${HOME}/fontconfig"
@@ -350,22 +283,22 @@ cd "${HOME}"
 
 if [ "$show_usage" -eq 1 ]; then
     # Display Firefox help, then our help
-    ./firefox --class "Tor Browser" \
+    ./firefox --class "I2P Browser" \
         -profile ../../Data/Browser/profile.default --help 2>/dev/null
     tbb_usage
 elif [ "$detach" -eq 1 ] ; then
-    ./firefox --class "Tor Browser" \
+    ./firefox --class "I2P Browser" \
        -profile ../../Data/Browser/profile.default "${@}" > "$logfile" 2>&1 </dev/null &
     disown "$!"
 elif [ "$log_output" -eq 1 -a "$show_output" -eq 1 ]; then
-    ./firefox --class "Tor Browser" \
+    ./firefox --class "I2P Browser" \
         -profile ../../Data/Browser/profile.default "${@}" 2>&1 </dev/null | \
         tee "$logfile"
 elif [ "$show_output" -eq 1 ]; then
-    ./firefox --class "Tor Browser" \
+    ./firefox --class "I2P Browser" \
         -profile ../../Data/Browser/profile.default "${@}" < /dev/null
 else
-    ./firefox --class "Tor Browser" \
+    ./firefox --class "I2P Browser" \
         -profile ../../Data/Browser/profile.default "${@}" > "$logfile" 2>&1 </dev/null
 fi
 

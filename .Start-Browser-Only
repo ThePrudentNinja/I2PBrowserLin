@@ -7,7 +7,10 @@ rm I2PBrowser.desktop-bak
 chmod u+x I2PBrowser.desktop
 
 
-            echo "Launching I2PBrowser"
+        if [ ! -f ./Data/Browser/profiles.ini ]; then
+            echo "Assuming not configured, copying configuration"
+            cp -r "./App/DefaultData/." "./Data/."
+            echo "Launching i2pbrowserlin"
             HOME="${PWD}"
             export HOME
             LD_LIBRARY_PATH="${HOME}/App/I2PBrowser/Libraries/"
@@ -15,8 +18,17 @@ chmod u+x I2PBrowser.desktop
 
             cd ./App/I2PBrowser/
             ./firefox --class "Tor Browser" -profile '../../Data/Browser/profile.default' > /dev/null 2>&1
+        else
+            echo "profiles.ini found, assuming configured"
+            echo "Launching i2pbrowser"
+            HOME="${PWD}"
+            export HOME
+            LD_LIBRARY_PATH="${HOME}/App/I2PBrowser/Libraries/"
+            export LD_LIBRARY_PATH
 
-
+            cd ./App/I2PBrowser/
+            ./firefox --class "Tor Browser" -profile '../../Data/Browser/profile.default' > /dev/null 2>&1
+        fi
 
 #cleaning up
 echo "Cleaning up"
